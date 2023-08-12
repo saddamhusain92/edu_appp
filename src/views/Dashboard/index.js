@@ -2,23 +2,28 @@ import { Fragment, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { useUser, UserButton } from "@clerk/clerk-react";
 import { toast } from "react-toastify";
+
 import "react-toastify/dist/ReactToastify.css";
 import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
   AcademicCapIcon,
   EyeIcon,
   XMarkIcon,
   CheckIcon,
   UserPlusIcon,
   ExclamationCircleIcon,
+  CurrencyRupeeIcon,
 } from "@heroicons/react/24/outline";
 import dataControllers from "../../api/requests";
+import { NavLink } from "react-router-dom";
 function Dashboard() {
+  const [cpage, setCpage] = useState(1);
   const d = new Date();
   const date = d.toDateString();
   const [open, setOpen] = useState(false);
   const [openview, setOpenview] = useState(false);
   const [dataview, setDataView] = useState({});
-
   const [search, setSearch] = useState("");
   const initialState = {
     name: "",
@@ -34,6 +39,12 @@ function Dashboard() {
 
   const [studens, setStudents] = useState([]);
   const name = user.fullName;
+  const perpage = 6;
+  const lastIndex = cpage * perpage;
+  const firstIdex = lastIndex - perpage;
+  const records = studens.slice(firstIdex, lastIndex);
+  const numpage = Math.ceil(studens.length / perpage);
+  const number = [...Array(numpage + 1).keys()].slice(1);
 
   const getStudent = () => {
     try {
@@ -90,7 +101,22 @@ function Dashboard() {
     setDataView(obj);
     setOpenview(true);
   };
-
+  const nextPage = () => {
+    if (cpage !== numpage) {
+      setCpage(cpage + 1);
+    }
+  };
+  const prePage = () => {
+    if (cpage !== 1) {
+      setCpage(cpage - 1);
+    }
+  };
+  const changePage = (n) => {
+    setCpage(n);
+  };
+  const LastPage=()=>{
+    setCpage(numpage)
+  }
   useEffect(() => {
     getStudent();
   }, []);
@@ -102,7 +128,7 @@ function Dashboard() {
           <AcademicCapIcon className="h-5 w-5 " /> Education{" "}
         </div>
         <div className="flex gap-4 items-center">
-          <p>Payments</p>
+          <p >Payments(<span className="text-green-600">Comming Soon..</span>)</p>
           <div className="text-sm">{name}</div>
           <UserButton />
         </div>
@@ -150,7 +176,7 @@ function Dashboard() {
         </div>
         <div className="mt-8 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8 h-96 scrollbar scrollbar-thumb-gray-900 scrollbar-track-gray-00">
+            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               <table className="min-w-full divide-y divide-gray-300 ">
                 <thead>
                   <tr>
@@ -199,7 +225,7 @@ function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {studens
+                  {records
                     .filter((item) => {
                       return search.toLowerCase() === ""
                         ? item
@@ -253,12 +279,57 @@ function Dashboard() {
                               className="h-5 w-5"
                               onClick={() => ViewStudent(person)}
                             />{" "}
+                            <CurrencyRupeeIcon
+                              className="h-5 w-5"
+                              onClick={() =>alert("pay")}
+                            />{" "}
                           </a>
                         </td>
                       </tr>
                     ))}
                 </tbody>
               </table>
+             {records?<>
+              <nav
+                className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                aria-label="Pagination"
+              >
+                <NavLink
+                  onClick={prePage}
+                  to="#"
+                  className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                >
+                  <span className="sr-only">Previous</span>
+                  <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                </NavLink>
+                {number.map((n, i) => (
+                  <NavLink
+                    key={i}
+                    to=""
+                    onClick={() => changePage(n)}
+                    className="relative hidden items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 md:inline-flex"
+                  >
+                    {n}
+                  </NavLink>
+                ))}
+                <NavLink
+                  onClick={LastPage}
+                  to="#"
+                  className="relative hidden items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 md:inline-flex"
+                >
+                  Last Page
+                </NavLink>
+
+                <NavLink
+                  onClick={nextPage}
+                  to="#"
+                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                >
+                  <span className="sr-only">Next</span>
+                  <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                </NavLink>
+              </nav>
+             </>:<></>}
             </div>
           </div>
         </div>
